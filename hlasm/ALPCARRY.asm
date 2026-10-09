@@ -1,3 +1,7 @@
+; alp-carry — carry-chain proof kernel
+; Copyright (C) 2026 Ahmad Ali Parr
+; SPDX-License-Identifier: AGPL-3.0-only
+
 * ALPCARRY - ALP proof evaluation via carry propagation
 * z/Architecture, 64-bit. Entailment = carry out 1. Refutation = carry out 0.
 * R2 proof words (clause-major)  R3 refined out  R4 literal count

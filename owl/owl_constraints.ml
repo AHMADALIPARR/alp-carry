@@ -1,3 +1,8 @@
+(* alp-carry — carry-chain proof kernel
+ * Copyright (C) 2026 Ahmad Ali Parr
+ * SPDX-License-Identifier: AGPL-3.0-only
+ *)
+
 (* owl_constraints.ml — CHC-style refine over neural outputs.
    Compiled to a C-callable object and linked into the host.
    Constraint spec is a line-oriented program:
@@ -52,6 +57,8 @@ let apply_lit neural refined = function
       Array.blit neural 0 refined 0 (Array.length neural);
       true
 
+(* A clause entails when every literal applies. Heads disjoin by last-write
+   of an entailed clause. No entailed clause leaves the identity word. *)
 let solve (neural_out : float array) (constraint_spec : string) : float array =
   let refined = Array.copy neural_out in
   let clauses = parse_spec constraint_spec in

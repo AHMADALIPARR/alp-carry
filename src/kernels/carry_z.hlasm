@@ -1,0 +1,35 @@
+* alp-carry — carry-chain proof kernel
+* Copyright (C) 2026 Ahmad Ali Parr
+* SPDX-License-Identifier: AGPL-3.0-only
+
+* ALPCARRY — ALP proof evaluation via carry propagation (z/Architecture)
+* R2 = proof words, R3 = output, R4 = literal count
+* Carry is primed (AND identity) so a single full mask still carries.
+         CSECT
+ALPCARRY AMODE 64
+ALPCARRY RMODE ANY
+         YREGS
+         LGFI  R5,0
+         LGFI  R6,0
+         LARL  R7,HEADMSK
+         LARL  R8,IDWORD
+         LGR   R9,R4
+         LTR   R9,R9
+         BZ    REFUTED
+* prime carry: (2^64-1)+(2^64-1) overflows, CC carries, R5 untouched
+         LGFI  R1,-1
+         ALGR  R1,R1
+CHAINLP  ALCG  R5,0(,R2)
+         LA    R2,8(,R2)
+         BRCT  R9,CHAINLP
+* CC 2 or 3: carry out. Mask 12.
+         BRC   12,ENTAILED
+REFUTED  LGR   R6,R8
+         B     STORE
+ENTAILED  LG   R6,0(,R7)
+STORE    STG   R6,0(,R3)
+         STG   R5,8(,R3)
+         BR    R14
+HEADMSK  DC    XL8'8000000000000000'
+IDWORD   DC    XL8'FFFFFFFFFFFFFFFF'
+         END

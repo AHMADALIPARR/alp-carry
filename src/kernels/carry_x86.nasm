@@ -1,3 +1,7 @@
+; alp-carry — carry-chain proof kernel
+; Copyright (C) 2026 Ahmad Ali Parr
+; SPDX-License-Identifier: AGPL-3.0-only
+
 ; alp_carry_prove_adx
 ; rdi words, rsi out, edx n
 ; Deficiency count: cmp word, -1 sets CF when the word is not full,

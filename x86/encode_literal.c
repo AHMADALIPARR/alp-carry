@@ -1,3 +1,8 @@
+/* alp-carry — carry-chain proof kernel
+ * Copyright (C) 2026 Ahmad Ali Parr
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 /* encode_literal.c — proof word bit j = 1 iff literal holds on dim j.
    Full literal <=> word == ~0ull. Encoder is the C1 gate. */
 #include <immintrin.h>
@@ -36,5 +41,8 @@ void encode_proj_mask(const float *n, const float *r, float eps, uint64_t *out)
     *out = m;
 }
 
+/* C1: a body word is admissible only as empty or full. Partial masks are
+   rejected here so the carry theorem's exact-residue case is the only case
+   that reaches the kernel. */
 int literal_full(uint64_t w) { return w == ~0ull; }
 int literal_empty(uint64_t w) { return w == 0ull; }

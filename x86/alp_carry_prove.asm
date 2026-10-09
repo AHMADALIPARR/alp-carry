@@ -1,3 +1,7 @@
+; alp-carry — carry-chain proof kernel
+; Copyright (C) 2026 Ahmad Ali Parr
+; SPDX-License-Identifier: AGPL-3.0-only
+
 ; alp_carry_prove_x86 — dual-rail carry proof
 ; System V: rdi = proof words, rsi = out, edx = literal count
 ; CF rail (ADCX) = clause-body conjunction

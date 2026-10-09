@@ -1,3 +1,7 @@
+# alp-carry — carry-chain proof kernel
+# Copyright (C) 2026 Ahmad Ali Parr
+# SPDX-License-Identifier: AGPL-3.0-only
+
 # attention_head.janet
 # Synthetic attention head. Weights are lifted above the closure.
 

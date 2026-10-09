@@ -1,3 +1,7 @@
+# alp-carry — carry-chain proof kernel
+# Copyright (C) 2026 Ahmad Ali Parr
+# SPDX-License-Identifier: AGPL-3.0-only
+
 # constraint_bridge.janet
 # Neural output in, symbolic constraints in, refined solution out.
 

@@ -1,3 +1,8 @@
+/* alp-carry — carry-chain proof kernel
+ * Copyright (C) 2026 Ahmad Ali Parr
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 /* atomic_solver.c — generated shape. Constants are baked by alp_engine.emit_c.
    One entry, no calls, no data branches. */
 #include <immintrin.h>

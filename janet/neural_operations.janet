@@ -1,3 +1,7 @@
+# alp-carry — carry-chain proof kernel
+# Copyright (C) 2026 Ahmad Ali Parr
+# SPDX-License-Identifier: AGPL-3.0-only
+
 # neural_operations.janet
 # Owl-backed ops and activation macros.
 

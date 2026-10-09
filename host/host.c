@@ -1,4 +1,10 @@
-/* host.c — C11 host. Owl is a static C symbol; tensors are local. */
+/* alp-carry — carry-chain proof kernel
+ * Copyright (C) 2026 Ahmad Ali Parr
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+/* host.c — C11 host. Owl is a static C symbol; tensors are local.
+   cc -std=c11 -O3 -mavx2 -c host.c */
 #include <stdalign.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -39,11 +45,26 @@ static void linear_avx2(const Tensor *x, const Tensor *w, const Tensor *b, Tenso
     }
 }
 
+static void softmax_inplace(float *v, size_t n) {
+    __m256 m = _mm256_set1_ps(-INFINITY);
+    float mx = -INFINITY;
+    for (size_t i = 0; i + 8 <= n; i += 8)
+        m = _mm256_max_ps(m, _mm256_loadu_ps(v + i));
+    float tmp[8];
+    _mm256_storeu_ps(tmp, m);
+    for (int i = 0; i < 8; i++) mx = fmaxf(mx, tmp[i]);
+    for (size_t i = n & ~7; i < n; i++) mx = fmaxf(mx, v[i]);
+    float sum = 0.f;
+    for (size_t i = 0; i < n; i++) { v[i] = expf(v[i] - mx); sum += v[i]; }
+    const float inv = 1.f / sum;
+    for (size_t i = 0; i < n; i++) v[i] *= inv;
+}
+
 extern int  owl_constraint_solve(const float *neural_out, size_t dims,
                                  const char *constraints, float *solution);
 extern void owl_constraint_init(void);
 extern void atomic_solver(const float *restrict neural, float *restrict refined, size_t dims);
-extern void alp_carry_prove_x86(const uint64_t *proof_words, uint64_t *verdict_out, uint32_t n);
+extern void alp_carry_prove(const uint64_t *proof_words, uint64_t *verdict_out);
 
 #define MAX_DIMS 64
 #define THRESHOLD 1e-4f
@@ -55,7 +76,9 @@ typedef struct {
     Tensor           refined;
 } LifeNode;
 
-static void notify_lifenode(LifeNode *node) { (void)node; }
+static void notify_lifenode(LifeNode *node) {
+    (void)node;
+}
 
 static int dspy_loop(LifeNode *node, const char *cl1_program) {
     owl_constraint_init();

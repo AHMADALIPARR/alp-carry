@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+build/
+src/alp/examples.json
+src/alp/induced.json
+src/alp/induced.pl
+src/atomizer/test_vectors.json
+src/atomizer/generated_constraints.h
+src/kernels/proof_masks.c

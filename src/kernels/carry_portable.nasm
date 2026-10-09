@@ -1,0 +1,35 @@
+; alp_carry_prove_portable — ADC deficiency count. Same predicate as the ADX kernel.
+        bits 64
+        default rel
+        section .text
+        global alp_carry_prove_portable
+
+alp_carry_prove_portable:
+        mov     r11, 0x8000000000000000
+        xor     r8, r8
+        xor     r10, r10
+        mov     ecx, edx
+        test    ecx, ecx
+        jz      .default_only
+.chain_loop:
+        cmp     qword [rdi], -1
+        adc     r8, r10
+        lea     rdi, [rdi + 8]
+        dec     ecx
+        jnz     .chain_loop
+        xor     rax, rax
+        test    r8, r8
+        cmovz   rax, r11
+        jmp     .finalize
+.default_only:
+        xor     rax, rax
+.finalize:
+        test    rax, rax
+        cmovz   rax, [rel identity_word]
+        mov     [rsi], rax
+        mov     [rsi + 8], r8
+        ret
+
+        section .rodata
+identity_word:
+        dq 0xFFFFFFFFFFFFFFFF

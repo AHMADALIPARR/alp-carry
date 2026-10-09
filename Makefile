@@ -1,18 +1,65 @@
-CC      ?= cc
-CFLAGS  ?= -std=c11 -O3 -mavx2
-NASM    ?= nasm
-OCAML   ?= ocamlfind ocamlopt
+CC      = cc
+AS      = nasm
+PY      = python3
+CFLAGS  = -std=c11 -O3 -mavx2 -Wall -Wextra -pedantic \
+          -Isrc/host -Isrc/atomizer -Isrc/kernels
+ASFLAGS = -f elf64
+HAVE_NASM := $(shell command -v nasm 2>/dev/null)
 
-.PHONY: host owl x86
+OBJS = build/tensor.o build/dispatch.o build/atomized.o \
+       build/verifier.o build/proof_masks.o \
+       build/carry_adx.o build/carry_portable.o
 
-host: host/host.c alp/atomic_solver.c
-	$(CC) $(CFLAGS) -c host/host.c -o host.o
-	$(CC) $(CFLAGS) -c alp/atomic_solver.c -o atomic_solver.o
+.PHONY: all synthesize test clean zkernel
 
-x86: x86/alp_carry_prove.asm x86/encode_literal.c
-	$(NASM) -f elf64 x86/alp_carry_prove.asm -o alp_carry_prove.o
-	$(CC) $(CFLAGS) -c x86/encode_literal.c -o encode_literal.o
+all: build/nnhost
 
-owl: owl/owl_constraints.ml
-	$(OCAML) -output-obj -o owl_constraints.o -package owl owl/owl_constraints.ml
-	ar rcs libowl_constraints.a owl_constraints.o
+build:
+	mkdir -p build
+
+build/tensor.o: src/host/tensor.c src/host/tensor.h | build
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/dispatch.o: src/host/dispatch.c src/host/cpu_dispatch.h | build
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/atomized.o: src/kernels/atomized.c src/atomizer/generated_constraints.h | build
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/proof_masks.o: src/kernels/proof_masks.c src/atomizer/generated_constraints.h | build
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/verifier.o: src/host/verifier.c src/host/tensor.h src/atomizer/generated_constraints.h | build
+	$(CC) $(CFLAGS) -c $< -o $@
+
+ifneq ($(HAVE_NASM),)
+build/carry_adx.o: src/kernels/carry_x86.nasm | build
+	$(AS) $(ASFLAGS) $< -o $@
+build/carry_portable.o: src/kernels/carry_portable.nasm | build
+	$(AS) $(ASFLAGS) $< -o $@
+else
+build/carry_adx.o: src/kernels/carry_x86.S | build
+	$(CC) -c $< -o $@
+build/carry_portable.o: src/kernels/carry_portable.S | build
+	$(CC) -c $< -o $@
+endif
+
+build/nnhost: src/host/host.c $(OBJS)
+	$(CC) $(CFLAGS) $^ -o $@ -lm
+	chmod +x $@
+
+synthesize:
+	$(PY) src/alp/examples_gen.py
+	$(PY) src/alp/alp_engine.py
+	$(PY) src/atomizer/atomizer.py
+
+zkernel:
+	@echo "HLASM kernel: assemble src/kernels/carry_z.hlasm on z/OS, link into host"
+
+test: synthesize all
+	bash tests/run_tests.sh
+
+clean:
+	rm -rf build src/atomizer/generated_constraints.h src/alp/examples.json \
+	       src/alp/induced.pl src/alp/induced.json src/atomizer/test_vectors.json \
+	       src/kernels/proof_masks.c

@@ -1,8 +1,13 @@
 ; alp-carry — carry-chain proof kernel
 ; Copyright (C) 2026 Ahmad Ali Parr
 ; SPDX-License-Identifier: AGPL-3.0-only
+;
+; alp_carry_prove_portable — single-rail ADC fallback.
+; No ADX. Same verdict as alp_carry_prove_adx:
+;   residue 0 iff every word is full, then head, else identity.
+; A summing ADC chain is not used: a zero word followed by a full
+; mask rebuilds CF, and n=1 all-full never raises CF.
 
-; alp_carry_prove_portable — ADC deficiency count. Same predicate as the ADX kernel.
         bits 64
         default rel
         section .text
@@ -16,14 +21,14 @@ alp_carry_prove_portable:
         test    ecx, ecx
         jz      .default_only
 .chain_loop:
-        cmp     qword [rdi], -1
-        adc     r8, r10
+        cmp     qword [rdi], -1         ; CF = 1 iff word is short
+        adc     r8, r10                 ; deficiency count, cannot repair
         lea     rdi, [rdi + 8]
         dec     ecx
         jnz     .chain_loop
         xor     rax, rax
         test    r8, r8
-        cmovz   rax, r11
+        cmovz   rax, r11                ; entailed ? head : 0
         jmp     .finalize
 .default_only:
         xor     rax, rax

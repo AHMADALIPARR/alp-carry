@@ -1,6 +1,7 @@
-; alp-carry — carry-chain proof kernel
-; Copyright (C) 2026 Ahmad Ali Parr
-; SPDX-License-Identifier: AGPL-3.0-only
+/* alp-carry — carry-chain proof kernel
+ * Copyright (C) 2026 Ahmad Ali Parr
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
 
 /* GAS twin of carry_x86.nasm. */
         .intel_syntax noprefix
